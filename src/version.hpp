@@ -1,0 +1,5 @@
+#define PROJECT_NAME_READABLE "Piano Tiles Plus Plus"
+#define PROJECT_NAME_READABLE_SHORT "PianoTiles++"
+#define PROJECT_NAME "pianotilesplusplus"
+#define PROJECT_IDEN "xyz.sollybunny.pianotilesplusplus"
+#define VERSION "0.0.0"
