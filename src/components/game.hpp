@@ -21,7 +21,5 @@ public:
 
 	}
 	bool event(const SDL_Event& event) override { return false; }
-	void frame() override {
-
-	}
+	void frame() override;
 };
