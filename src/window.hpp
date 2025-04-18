@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "lib/error.hpp"
+#include "lib/exception.hpp"
 #include "version.hpp"
 
 class WindowWrapper {
@@ -23,23 +23,16 @@ public:
 		return speaker;
 	}
 	WindowWrapper() {
-		const int subsystems = SDL_INIT_AUDIO | SDL_INIT_VIDEO;
-		if (!SDL_Init(subsystems))
-			raiseException("SDL_Init failed: %s", SDL_GetError());
-		// Set app metadata
-		if (!SDL_SetAppMetadata(PROJECT_NAME_READABLE, VERSION, PROJECT_IDEN))
-			raiseException("SDL_SetAppMetadata failed: %s", SDL_GetError());
+		checkFunctionSDL(SDL_Init, SDL_INIT_AUDIO | SDL_INIT_VIDEO);
+		checkFunctionSDL(SDL_SetAppMetadata, PROJECT_NAME_READABLE, VERSION, PROJECT_IDEN);
 		// Create window
 		const int flags = SDL_WINDOW_RESIZABLE;
-		if(!SDL_CreateWindowAndRenderer(PROJECT_NAME_READABLE, 512, 512, flags, &window, &renderer))
-			raiseException("SDL_CreateWindowAndRenderer failed: %s", SDL_GetError());
+		checkFunctionSDL(SDL_CreateWindowAndRenderer, PROJECT_NAME_READABLE, 512, 512, flags, &window, &renderer);
 		// Init audio
 		SDL_AudioSpec want = {};
 		want.channels = 2;
-		speaker = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &want);
-		if (speaker == 0)
-			raiseException("SDL_OpenAudioDevice failed: %s", SDL_GetError());
-		SDL_ResumeAudioDevice(speaker);
+		speaker = checkFunctionSDL(SDL_OpenAudioDevice, SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &want);
+		checkFunctionSDL(SDL_ResumeAudioDevice, speaker);
 		// Done
 		valid = true;
 	}

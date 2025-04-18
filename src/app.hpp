@@ -1,8 +1,12 @@
-#include "window.hpp"
+#include "lib/exception.hpp"
+#include "lib/log.hpp"
+
+#include "sdl_ext/spritemaptext.hpp"
 #include "sdl_ext/midiplayer.hpp"
 
+#include "window.hpp"
+
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_events.h>
 
 class App {
 	WindowWrapper windowWrapper;
@@ -10,8 +14,10 @@ class App {
 	SDL_Renderer* const& renderer = windowWrapper.getRenderer();
 
 	SDL_MidiPlayer player = SDL_MidiPlayer(windowWrapper.getSpeaker());
+	SDL_SpriteMapText text = SDL_SpriteMapText(renderer, "font.png", 16, 16);
 
-	tsf* soundFont = player.loadFont("../pianotiles2.sf2");
+	static constexpr const char* SOUNDFONT_PATH = "pianotiles2.sf2";
+	tsf* soundFont = player.loadFont(SOUNDFONT_PATH);
 
 public:
 	bool running = true;
@@ -24,23 +30,34 @@ public:
 	App(int argc, char* argv[]) {
 		(void)argc;
 		(void)argv;
-		std::printf("App start!\n");
+		info("App start!");
+		checkFunctionSDL(SDL_SetTextureScaleMode, text.getTexture(), SDL_SCALEMODE_NEAREST);
+		if (!soundFont)
+			raiseException("Failed to load %s", SOUNDFONT_PATH);
 	}
 	~App() {
-		std::printf("App quit!\n");
+		info("App quit!");
 	}
 	void frame() {
-		// std::printf("Frame: %f %f\n", fps, delta);
 		SDL_SetRenderDrawColor(renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
+		text.draw(renderer, (int)fps, 2.0f, 2.0f, 16.0f);
 		// render();
 		SDL_RenderPresent(renderer);
 	}
 	void event(const SDL_Event& event) {
-		std::printf("Got event %d!\n", event.type);
-		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-			player.play(soundFont, 60);
-			printf("hi\n");
+		switch (event.type) {
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+				player.play(soundFont, 60);
+				break;
+			case SDL_EVENT_KEY_DOWN:
+				int note = event.key.key;
+				while (note < 20)
+					note += 20;
+				while (note > 100)
+					note -= 20;
+				player.play(soundFont, note);
+				break;
 		}
 	}
 };
